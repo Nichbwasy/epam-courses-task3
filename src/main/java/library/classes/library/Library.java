@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.Exchanger;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -19,6 +20,7 @@ public class Library extends Thread{
     private Lock lock = new ReentrantLock();
     private List<Book> books;
     private ReadingRoom readingRoom;
+    private Exchanger<List<Book>> exchanger = new Exchanger<>();
 
     public Library(List<Book> books) {
         Thread.currentThread().setName("Library");
@@ -50,6 +52,11 @@ public class Library extends Thread{
         }
     }
 
+    /**
+     * Returns necessary count of books from library
+     * @param count Necessary books count
+     * @return Books from the library
+     */
     private List<Book> getBooks(Integer count){
         lock.lock();
         List<Book> retBooks = new ArrayList<>();
@@ -65,12 +72,16 @@ public class Library extends Thread{
         return retBooks;
     }
 
+    /**
+     * Add and starts new reader into the reading room
+     * @param needBooks Count of books which reader needs
+     */
     private void enterReader(Integer needBooks) {
         List<Book> retBooks = getBooks(needBooks);
         lock.lock();
         usersCount++;
         lock.unlock();
-        Reader newReader = new Reader(usersCount, readingRoom, retBooks);
+        Reader newReader = new Reader(usersCount, readingRoom, retBooks, exchanger);
         newReader.start();
         readingRoom.enter(newReader);
     }

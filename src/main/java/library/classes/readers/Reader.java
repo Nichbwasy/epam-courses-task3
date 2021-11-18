@@ -18,11 +18,13 @@ public class Reader extends Thread {
     private Long readerId;
     private List<Book> books;
     private ReadingRoom readingRoom;
+    private Exchanger<List<Book>> exchanger;
 
-    public Reader(Long id, ReadingRoom readingRoom, List<Book> books) {
+    public Reader(Long id, ReadingRoom readingRoom, List<Book> books, Exchanger<List<Book>> exchanger) {
         this.readerId = id;
         this.readingRoom = readingRoom;
         this.books = books;
+        this.exchanger = exchanger;
     }
 
     public List<Book> returnBooks() {
@@ -44,28 +46,38 @@ public class Reader extends Thread {
         readingRoom.leave(this);
     }
 
+    /**
+     * Check books expiration time
+     * @return Returns true if any book have expiration time more then current time.
+     */
     private boolean canBeExchanged() {
         Date curTime = new Date();
         return books.stream().anyMatch(book -> book.getExpirationTime() > curTime.getTime());
     }
 
+    /**
+     * Reader reads his books
+     * @param delay time needs to read one book
+     */
     private void readBooks(Long delay) {
         LOGGER.info("Reader[{}] now is reading books.", readerId);
         books.forEach(b -> waiting(delay));
     }
 
+    /**
+     * Reader waits 150ms to exchange books, then he left.
+     */
     private void exchangeBooks() {
         try {
-            Exchanger<List<Book>> exchanger = new Exchanger<>();
-            List<Book> exBooks = exchanger.exchange(books, 150, TimeUnit.MILLISECONDS);
+            List<Book> exBooks = exchanger.exchange(books, 300, TimeUnit.MILLISECONDS);
             if (exBooks != null) {
                 LOGGER.info("Reader[{}] now is exchanging books.", readerId);
                 books = exBooks;
             } else {
-                LOGGER.info("Reader[{}] hasn't exchanged books.", readerId);
+                LOGGER.warn("Reader[{}] got tired of waiting and left! ", readerId);
             }
         } catch (InterruptedException | TimeoutException e) {
-            LOGGER.warn("Reader[{}] got tired of waiting and left! ", readerId);
+            LOGGER.error("Reader[{}] can't exchange books between other reader.", readerId, e);
         }
     }
 

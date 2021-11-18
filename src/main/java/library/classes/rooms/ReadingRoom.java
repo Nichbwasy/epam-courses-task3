@@ -19,11 +19,20 @@ public class ReadingRoom {
         this.library = library;
     }
 
+
+    /**
+     * New reader has entered to the library
+     * @param reader Reader to enter
+     */
     public void enter(Reader reader) {
         readers.add(reader);
         LOGGER.info("Reader[{}] has entered into reading room.", reader.getUserId());
     }
 
+    /**
+     * Reader leaves the library.
+     * @param reader Reader to leave
+     */
     public void leave(Reader reader) {
         List<Book> retBooks = reader.returnBooks();
         library.returnBooks(retBooks);

@@ -14,7 +14,7 @@ public class LibraryTest {
     private List<Book> booksMoc = Arrays.asList(book, book, book);
 
     @Test
-    public void LibraryTest(){
+    public void libraryTest(){
         Library library = new Library(booksMoc);
         Assertions.assertEquals(3, library.getBooksCount());
     }

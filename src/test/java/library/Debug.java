@@ -9,9 +9,9 @@ import java.util.List;
 
 public class Debug {
     @Test
-    public void DebugTest() {
+    public void debugTest() {
         List<Book> books = new ArrayList<>();
-        for(Long i = 1L; i < 20; i++) books.add(new Book(i));
+        for(Long i = 1L; i < 21; i++) books.add(new Book(i));
         Library library = new Library(books);
         library.start();
         while (library.isAlive()) {
